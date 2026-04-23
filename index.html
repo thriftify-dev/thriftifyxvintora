@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vision Ireland Trial Performance Business Case</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1E3A8A;
+      --navy-dark: #172554;
+      --green: #00C27D;
+      --green-dark: #059669;
+      --indigo: #6366f1;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #ffffff;
+      color: #1e293b;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Slide System */
+    .slide-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+    .slide {
+      position: absolute; inset: 0;
+      opacity: 0; pointer-events: none;
+      overflow: hidden;
+      transform: translateY(8px);
+      transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+    /* Animations — only play inside .slide.active */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes fadeInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
+    @keyframes float1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes float2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.6; } }
+    @keyframes growBar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes growBarH { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes drawCircle { from { stroke-dashoffset: 754; } }
+    @keyframes subtleBlur { from { opacity: 0; filter: blur(6px); transform: translateY(12px); } to { opacity: 1; filter: blur(0); transform: translateY(0); } }
+
+    /* Elements start invisible and frozen until their slide is active */
+    [data-anim] { opacity: 0; }
+
+    .slide.active [data-anim="fade-up"]    { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active [data-anim="fade-down"]  { animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active [data-anim="fade-left"]  { animation: fadeInLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active [data-anim="fade-right"] { animation: fadeInRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active [data-anim="scale"]      { animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active [data-anim="blur-up"]    { animation: subtleBlur 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    .slide.active .css-bar  { animation: growBar 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active .css-hbar { animation: growBarH 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .slide.active [data-hbar] { animation: growBarH 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* Delay classes — applied via data-delay attribute */
+    .slide.active [data-delay="1"] { animation-delay: 0.08s; }
+    .slide.active [data-delay="2"] { animation-delay: 0.16s; }
+    .slide.active [data-delay="3"] { animation-delay: 0.24s; }
+    .slide.active [data-delay="4"] { animation-delay: 0.34s; }
+    .slide.active [data-delay="5"] { animation-delay: 0.44s; }
+    .slide.active [data-delay="6"] { animation-delay: 0.56s; }
+    .slide.active [data-delay="7"] { animation-delay: 0.68s; }
+    .slide.active [data-delay="8"] { animation-delay: 0.80s; }
+    .slide.active [data-delay="9"] { animation-delay: 0.92s; }
+    .slide.active [data-delay="10"] { animation-delay: 1.04s; }
+    .slide.active [data-delay="11"] { animation-delay: 1.16s; }
+    .slide.active [data-delay="12"] { animation-delay: 1.28s; }
+
+    /* Navigation */
+    .nav-controls {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 50;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .nav-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid #e5e7eb; cursor: pointer;
+      transition: all 0.2s; backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.9);
+    }
+    .nav-btn:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: scale(1.05); }
+    .nav-btn:active:not(:disabled) { transform: scale(0.92); }
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .nav-btn.next-btn { background: var(--navy); border-color: var(--navy); color: white; }
+    .nav-btn.next-btn:hover:not(:disabled) { background: var(--navy-dark); }
+    .nav-btn svg { width: 20px; height: 20px; }
+
+    .slide-counter {
+      position: fixed; bottom: 2rem; left: 2rem; z-index: 50;
+      font-size: 0.875rem; font-weight: 600; color: #94a3b8;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+      padding: 0.5rem 1rem; border-radius: 9999px; border: 1px solid #e5e7eb;
+    }
+
+    /* Slide Wrapper (shared layout for content slides) */
+    .slide-inner {
+      position: relative; height: 100%; width: 100%;
+      background: white; overflow: hidden; display: flex; flex-direction: column;
+    }
+    .slide-bg-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+      background-size: 24px 24px; opacity: 0.3;
+    }
+    .slide-bg-blob1 {
+      position: absolute; top: -160px; right: -160px;
+      width: 384px; height: 384px; background: rgba(30,58,138,0.1);
+      border-radius: 50%; filter: blur(48px); pointer-events: none;
+    }
+    .slide-bg-blob2 {
+      position: absolute; top: 50%; left: -160px;
+      width: 320px; height: 320px; background: rgba(0,194,125,0.05);
+      border-radius: 50%; filter: blur(48px); pointer-events: none;
+    }
+
+    .slide-header {
+      position: relative; z-index: 10;
+      padding: 3rem 3rem 1.5rem; border-bottom: 1px solid rgba(241,245,249,0.5);
+      background: rgba(255,255,255,0.5); backdrop-filter: blur(12px);
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .slide-subtitle {
+      display: inline-block; padding: 0.25rem 0.75rem; margin-bottom: 0.75rem;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+      color: var(--green); background: rgba(0,194,125,0.08);
+      border-radius: 9999px; text-transform: uppercase;
+    }
+    .slide-title {
+      font-size: 2.25rem; font-weight: 600; color: var(--navy);
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .slide-branding {
+      display: flex; align-items: center; gap: 1rem;
+      font-size: 0.875rem; color: #cbd5e1;
+    }
+    .brand-tag {
+      font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 0.5rem;
+      font-size: 0.75rem;
+    }
+    .brand-thriftify { background: rgba(0,194,125,0.1); }
+    .brand-company { background: rgba(30,58,138,0.1); }
+
+    .slide-content {
+      position: relative; z-index: 10;
+      flex: 1; padding: 2rem 3rem; overflow-y: auto;
+    }
+
+    /* Cards */
+    .card {
+      background: white; border-radius: 1.5rem; padding: 2rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;
+    }
+    .card-lg { border-radius: 2rem; padding: 3rem; }
+    .card-xl { border-radius: 2.5rem; padding: 3rem; box-shadow: 0 8px 40px rgba(0,0,0,0.06); }
+
+    /* Bar Chart CSS */
+    .css-bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 100%; padding: 1rem 0; }
+    .css-bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+    .css-bar {
+      width: 100%; max-width: 36px; border-radius: 6px 6px 6px 6px;
+      transform-origin: bottom; transform: scaleY(0);
+      position: relative;
+    }
+    .css-bar-label { font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 0.5rem; text-align: center; white-space: nowrap; opacity: 0; }
+    .css-bar-value { font-size: 0.9rem; color: #64748b; font-weight: 700; margin-bottom: 0.25rem; opacity: 0; }
+    .slide.active .css-bar-label, .slide.active .css-bar-value { animation: fadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards; animation-delay: 0.6s; }
+
+    .css-hbar-chart { display: flex; flex-direction: column; gap: 1rem; height: 100%; justify-content: center; }
+    .css-hbar-row { display: flex; align-items: center; gap: 1rem; }
+    .css-hbar-name { width: 130px; text-align: right; font-size: 0.875rem; font-weight: 700; color: #1e293b; flex-shrink: 0; }
+    .css-hbar-track { flex: 1; height: 40px; background: #f8fafc; border-radius: 0 8px 8px 0; overflow: hidden; }
+    .css-hbar {
+      height: 100%; border-radius: 0 8px 8px 0;
+      transform-origin: left; animation: growBarH 1s ease forwards;
+      display: flex; align-items: center; justify-content: flex-end; padding-right: 0.75rem;
+    }
+    .css-hbar-val { font-size: 0.8rem; font-weight: 700; color: white; }
+    .css-hbar-val-dark { color: #64748b; position: absolute; right: -3.5rem; font-size: 0.8rem; font-weight: 700; }
+
+    /* Radial chart */
+    .radial-chart { position: relative; display: inline-block; }
+    .radial-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    /* Comparison lists */
+    .compare-item { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem; }
+    .compare-icon { flex-shrink: 0; width: 20px; height: 20px; margin-top: 2px; }
+
+    /* Utility */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    .grid-sidebar { display: grid; grid-template-columns: 1fr 3fr; gap: 2rem; }
+    .grid-sidebar-sm { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; }
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .flex-col { display: flex; flex-direction: column; }
+    .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
+    .h-full { height: 100%; }
+    .text-center { text-align: center; }
+    .icon-box {
+      width: 48px; height: 48px; border-radius: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-box-lg { width: 64px; height: 64px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; }
+    .tag {
+      display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* Cover specific */
+    .cover-bg-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(to right, #f1f5f9 1px, transparent 1px), linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+      background-size: 4rem 4rem;
+      mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, #000 10%, transparent 100%);
+    }
+    .cover-blob {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 800px; height: 800px;
+      background: linear-gradient(to right, rgba(30,58,138,0.2), rgba(0,194,125,0.2));
+      border-radius: 50%; filter: blur(100px); opacity: 0.5;
+      pointer-events: none; mix-blend-mode: multiply;
+    }
+    .logo-box {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem; border-radius: 1rem;
+      background: white; box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+      border: 1px solid #f1f5f9;
+    }
+    .logo-text { font-size: 1.25rem; font-weight: 800; }
+    .x-divider {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #f8fafc; display: flex; align-items: center; justify-content: center;
+      border: 1px solid #f1f5f9; color: #9ca3af;
+    }
+
+    /* Pill badges */
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1.5rem; border-radius: 9999px;
+      font-weight: 600; font-size: 0.9375rem;
+    }
+    .pill-green { background: rgba(0,194,125,0.05); color: var(--green); border: 1px solid rgba(0,194,125,0.1); }
+    .pill-navy { background: rgba(30,58,138,0.1); color: var(--navy); border: 1px solid rgba(30,58,138,0.2); }
+
+    /* Floating decorators */
+    .float-el {
+      position: absolute; width: 64px; height: 64px; background: white;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      border: 1px solid #f1f5f9; opacity: 0.8;
+    }
+    .float-tl { top: 8%; left: 8%; animation: float1 4s ease-in-out infinite; }
+    .float-tr { top: 12%; right: 10%; animation: float2 4.5s ease-in-out infinite 0.5s; }
+    .float-bl { bottom: 12%; left: 10%; animation: float1 5.5s ease-in-out infinite 1.5s; }
+    .float-br { bottom: 8%; right: 8%; animation: float2 5s ease-in-out infinite 1s; }
+
+    /* Green highlight card */
+    .green-card {
+      background: linear-gradient(135deg, rgba(0,194,125,0.08), rgba(0,194,125,0.04));
+      border: 1px solid rgba(0,194,125,0.2);
+      border-radius: 1.5rem; padding: 2rem; color: var(--navy);
+      box-shadow: 0 8px 30px rgba(0,194,125,0.08); position: relative; overflow: hidden;
+    }
+    .green-card::after {
+      content: ''; position: absolute; right: -40px; bottom: -40px;
+      width: 160px; height: 160px; background: rgba(0,194,125,0.06);
+      border-radius: 50%; filter: blur(32px); pointer-events: none;
+    }
+    .navy-card {
+      background: linear-gradient(135deg, var(--navy), var(--navy-dark));
+      border-radius: 1.5rem; padding: 2rem; color: white;
+      box-shadow: 0 20px 60px rgba(30,58,138,0.2); position: relative; overflow: hidden;
+    }
+
+    /* Support Impact Shield */
+    .shield-container {
+      position: relative; margin-bottom: 3rem; display: inline-block;
+    }
+    .shield-glow {
+      position: absolute; inset: 0; background: rgba(30,58,138,0.2);
+      filter: blur(32px); border-radius: 50%; transform: scale(1.5);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    .shield-box {
+      width: 128px; height: 128px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-dark));
+      border-radius: 1.5rem; transform: rotate(12deg);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 10px 40px rgba(30,58,138,0.3); position: relative; z-index: 1;
+    }
+    .shield-box svg { transform: rotate(-12deg); }
+
+    /* Connection line for methodology */
+    .method-flow {
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 800px; margin: 0 auto 3rem; position: relative;
+    }
+    .method-flow::before {
+      content: ''; position: absolute; top: 50%; left: 10%; right: 10%;
+      height: 3px; z-index: 0;
+      background: linear-gradient(to right, #93c5fd, #6ee7b7, #a5b4fc);
+      border-radius: 2px;
+    }
+    .method-step {
+      display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+      background: white; padding: 1rem; border-radius: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f8fafc;
+      position: relative; z-index: 1;
+    }
+    .method-step-icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .method-step-label {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.15em; color: #64748b;
+    }
+
+    /* Listing quality comparison */
+    .comparison-grid {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem;
+      align-items: stretch; flex: 1;
+    }
+    .comparison-arrow {
+      display: flex; align-items: center; justify-content: center;
+    }
+    .arrow-circle {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #f8fafc; border: 1px solid #f1f5f9;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Example links */
+    .example-link {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem; border-radius: 1rem; border: 1px solid #e5e7eb;
+      background: white; text-decoration: none; color: inherit;
+      transition: all 0.3s;
+    }
+    .example-link:hover { border-color: var(--green); box-shadow: 0 8px 30px rgba(0,194,125,0.12); }
+    .example-link:hover .example-title { color: var(--green); }
+    .example-link:hover .example-icon-box { background: var(--green); color: white; }
+    .example-title { font-size: 1.125rem; font-weight: 600; color: #111827; transition: color 0.3s; margin-bottom: 0.25rem; }
+    .example-desc { font-size: 0.875rem; color: #6b7280; font-weight: 500; }
+    .example-icon-box {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #f8fafc; display: flex; align-items: center; justify-content: center;
+      color: #9ca3af; transition: all 0.3s; flex-shrink: 0;
+    }
+
+    /* Thank you */
+    .thankyou-heart-glow {
+      position: absolute; inset: 0; background: var(--navy);
+      border-radius: 50%; filter: blur(32px); opacity: 0.4;
+      animation: pulse 3s ease-in-out infinite;
+    }
+    .thankyou-heart {
+      width: 128px; height: 128px; background: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9;
+      position: relative; z-index: 1;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 0.75rem;
+      padding: 1rem 2rem; background: var(--green); color: white;
+      border: none; border-radius: 9999px; font-weight: 700; font-size: 1.125rem;
+      cursor: pointer; box-shadow: 0 10px 40px rgba(0,194,125,0.3);
+      transition: background 0.2s; font-family: inherit;
+    }
+    .cta-btn:hover { background: var(--green-dark); }
+
+    /* Stat card */
+    .stat-card {
+      display: flex; align-items: center; gap: 1.5rem;
+      background: white; border-radius: 2rem; padding: 2rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-4px); }
+    .stat-value { font-size: 2.25rem; font-weight: 800; color: #111827; letter-spacing: -0.02em; }
+    .stat-label { font-size: 0.75rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .grid-sidebar, .grid-sidebar-sm { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .comparison-grid { grid-template-columns: 1fr; }
+      .comparison-arrow { transform: rotate(90deg); }
+      .slide-header { padding: 1.5rem; }
+      .slide-content { padding: 1.5rem; }
+      .slide-title { font-size: 1.5rem; }
+      .method-flow { flex-direction: column; gap: 1rem; }
+      .method-flow::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container" id="slideContainer">
+
+    <!-- SLIDE 1: COVER -->
+    <div class="slide active" id="slide-0">
+      <div style="height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:white;">
+        <div class="cover-bg-grid"></div>
+        <div class="cover-blob"></div>
+
+        <div style="position:relative;z-index:10;text-align:center;max-width:960px;padding:0 2rem;display:flex;flex-direction:column;align-items:center;">
+          <div data-anim="scale" data-delay="1" style="display:flex;align-items:center;gap:1.5rem;margin-bottom:3rem;">
+            <div class="logo-box" data-anim="fade-left" data-delay="2">
+              <img src="assets/thriftify-logo.png" alt="Thriftify" style="height:32px;width:auto;object-fit:contain;">
+            </div>
+            <div class="x-divider" data-anim="scale" data-delay="4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+            <div class="logo-box" data-anim="fade-right" data-delay="2">
+              <span style="font-size:2rem;font-weight:800;color:var(--navy);line-height:1;">Vintora</span>
+            </div>
+          </div>
+
+          <h1 data-anim="blur-up" data-delay="5" style="font-size:4.5rem;font-weight:600;letter-spacing:-0.03em;color:var(--green);line-height:1.1;margin-bottom:2rem;">
+            Scale Your<br>
+            <span style="background:linear-gradient(to right,var(--navy),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Resale Operation</span>
+          </h1>
+
+          <p data-anim="blur-up" data-delay="7" style="font-size:1.25rem;color:#64748b;font-weight:400;max-width:640px;margin:0 auto 4rem;line-height:1.7;">
+            The listing platform resale businesses across the world trust to scale their operation
+          </p>
+        </div>
+
+        <div class="float-el float-tl">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M3 3v18h18"/><path d="M21 7l-5 5-4-4-3 3"/></svg>
+        </div>
+        <div class="float-el float-tr">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="float-el float-bl">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+        <div class="float-el float-br">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: WHAT IS THRIFTIFY -->
+    <div class="slide" id="slide-1">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div>
+        <div class="slide-bg-blob1"></div>
+        <div class="slide-bg-blob2"></div>
+
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">About Us</span>
+            <h2 class="slide-title">What is Thriftify</h2>
+          </div>
+          <div class="slide-branding">
+            <img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;">
+            <span>×</span>
+            <span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span>
+          </div>
+        </div>
+
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:2rem;">
+          <div style="max-width:800px;margin:0 auto;text-align:center;" data-anim="fade-down" data-delay="2">
+            <h3 style="font-size:2.5rem;font-weight:500;color:var(--navy);line-height:1.2;margin-bottom:1.5rem;">
+              Built for Resale, Built to Scale
+            </h3>
+            <p style="font-size:1.25rem;color:#64748b;font-weight:400;line-height:1.7;margin-bottom:3rem;">
+              Thriftify is an omni-channel listing platform built for resale businesses. We make listing faster, more accurate, and scalable — so your team spends less time processing and more time selling.
+            </p>
+          </div>
+
+          <div class="grid-3" style="margin-bottom:3rem;">
+            <div class="card" data-anim="blur-up" data-delay="4" style="border-radius:2rem;display:flex;flex-direction:column;align-items:center;text-align:center;">
+              <div class="icon-box-lg" style="background:#eff6ff;margin-bottom:1.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <h3 style="font-size:1.375rem;font-weight:500;color:var(--navy);margin-bottom:1rem;">Faster Listing</h3>
+              <p style="color:#64748b;font-weight:400;line-height:1.6;">Streamlined workflows designed specifically for unique, second-hand items.</p>
+            </div>
+
+            <div class="card" data-anim="blur-up" data-delay="6" style="border-radius:2rem;display:flex;flex-direction:column;align-items:center;text-align:center;">
+              <div class="icon-box-lg" style="background:#ecfdf5;margin-bottom:1.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <h3 style="font-size:1.375rem;font-weight:500;color:var(--navy);margin-bottom:1rem;">More Accurate</h3>
+              <p style="color:#64748b;font-weight:400;line-height:1.6;">Standardised data entry and AI-assisted item recognition reduce errors.</p>
+            </div>
+
+            <div class="card" data-anim="blur-up" data-delay="8" style="border-radius:2rem;display:flex;flex-direction:column;align-items:center;text-align:center;">
+              <div class="icon-box-lg" style="background:#eef2ff;margin-bottom:1.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--indigo)" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </div>
+              <h3 style="font-size:1.375rem;font-weight:500;color:var(--navy);margin-bottom:1rem;">Scalable</h3>
+              <p style="color:#64748b;font-weight:400;line-height:1.6;">Omni-channel capabilities allow you to grow your business without bottlenecks.</p>
+            </div>
+          </div>
+
+          <div class="navy-card" data-anim="fade-up" data-delay="10" style="border-radius:1rem;padding:1.5rem;text-align:center;max-width:800px;margin:0 auto;width:100%;">
+            <p style="font-size:1.25rem;font-weight:500;letter-spacing:0.01em;color:var(--green);">Our mission: Make listing faster and more accurate.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: IMPACT -->
+    <div class="slide" id="slide-2">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">The Impact: What Changes When You Use Thriftify</span>
+            <h2 class="slide-title">What Thriftify Does For Your Business</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:2rem;">
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:960px;margin:0 auto;width:100%;">
+            
+            <div class="card" data-anim="fade-up" data-delay="2" style="border-radius:1.5rem;display:flex;align-items:center;gap:1.5rem;padding:1.5rem 2rem;">
+              <div class="icon-box-lg" style="background:#eff6ff;color:var(--navy);flex-shrink:0;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <h3 style="font-size:1.25rem;font-weight:500;color:var(--navy);line-height:1.4;margin:0;">2× your daily listing output from day one</h3>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="3" style="border-radius:1.5rem;display:flex;align-items:center;gap:1.5rem;padding:1.5rem 2rem;">
+              <div class="icon-box-lg" style="background:#ecfdf5;color:var(--green);flex-shrink:0;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </div>
+              <h3 style="font-size:1.25rem;font-weight:500;color:var(--navy);line-height:1.4;margin:0;">Sell more with higher quality, consistent listings</h3>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="4" style="border-radius:1.5rem;display:flex;align-items:center;gap:1.5rem;padding:1.5rem 2rem;">
+              <div class="icon-box-lg" style="background:#eef2ff;color:var(--indigo);flex-shrink:0;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <h3 style="font-size:1.25rem;font-weight:500;color:var(--navy);line-height:1.4;margin:0;">List across eBay and Shopify from a single workflow</h3>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="5" style="border-radius:1.5rem;display:flex;align-items:center;gap:1.5rem;padding:1.5rem 2rem;">
+              <div class="icon-box-lg" style="background:#fffbeb;color:#ea580c;flex-shrink:0;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <h3 style="font-size:1.25rem;font-weight:500;color:var(--navy);line-height:1.4;margin:0;">Get real-time reporting on team performance and listing efficiency</h3>
+            </div>
+
+            <div class="green-card" data-anim="fade-up" data-delay="6" style="grid-column:1 / -1;border-radius:1.5rem;display:flex;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;">
+              <div class="icon-box-lg" style="background:rgba(0,194,125,0.12);color:var(--green);flex-shrink:0;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <h3 style="font-size:1.5rem;font-weight:500;color:var(--navy);line-height:1.4;margin:0;">Scale operations without scaling headcount</h3>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: PLATFORM FEATURES -->
+    <div class="slide" id="slide-3">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">Platform Features</span>
+            <h2 class="slide-title">The Platform</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:2rem;">
+          
+          <div style="text-align:center;margin-bottom:3rem;" data-anim="fade-down" data-delay="2">
+            <h3 style="font-size:2.25rem;font-weight:500;color:var(--navy);letter-spacing:-0.02em;">Everything You Need in One Place</h3>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:1.25rem;max-width:900px;margin:0 auto;width:100%;">
+            
+            <div class="card" data-anim="fade-up" data-delay="3" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#eff6ff;color:var(--navy);flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Bulk Omni-Channel Listing</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">List to eBay and Shopify simultaneously from one place</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="4" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#ecfdf5;color:var(--green);flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">AI Title and Descriptions</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Automated, structured titles and descriptions that improve search visibility</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="5" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#eef2ff;color:var(--indigo);flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Image Workflow</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Consistent, high-quality image capture built into the listing process</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="6" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#fffbeb;color:#ea580c;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Performance Reporting</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Track listings per day, per hour, step-by-step workflow analysis, and speed improvement insights</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="7" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#fdf2f8;color:#16a34a;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Inventory Management</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Synced inventory across all channels in real time</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: CLIENT PERFORMANCE -->
+    <div class="slide" id="slide-4">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">What Our Users Are Achieving</span>
+            <h2 class="slide-title">Client Performance</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:2rem;">
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;max-width:1000px;margin:0 auto;width:100%;align-items:center;">
+            
+            <div data-anim="fade-right" data-delay="2">
+              <div class="card" style="border-radius:1.5rem;padding:2.5rem;display:flex;flex-direction:column;gap:1.5rem;background:white;box-shadow:0 20px 40px rgba(0,0,0,0.08);border:1px solid #f1f5f9;position:relative;overflow:hidden;">
+                <!-- Decorative background element -->
+                <div style="position:absolute;top:-50px;right:-50px;width:150px;height:150px;background:radial-gradient(circle, rgba(0,194,125,0.1) 0%, transparent 70%);border-radius:50%;"></div>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:relative;z-index:1;">
+                  <h3 style="font-size:0.875rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;">Client Success</h3>
+                  <h3 style="font-size:0.875rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;">Efficiency Growth</h3>
+                </div>
+                
+                <div style="display:flex;flex-direction:column;gap:1.75rem;position:relative;z-index:1;">
+                  <!-- Trovie -->
+                  <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;align-items:flex-end;">
+                      <span style="font-size:1.25rem;font-weight:600;color:var(--navy);">Trovie</span>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        <span style="font-size:1.75rem;font-weight:800;color:var(--green);line-height:1;">+462%</span>
+                      </div>
+                    </div>
+                    <div style="width:100%;height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
+                      <div data-hbar style="width:100%;height:100%;background:linear-gradient(90deg, #34d399, #059669);border-radius:999px;transform-origin:left;transform:scaleX(0);animation-delay:0.2s;"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Hub Vintage -->
+                  <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;align-items:flex-end;">
+                      <span style="font-size:1.25rem;font-weight:600;color:var(--navy);">Hub Vintage Wholesale</span>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        <span style="font-size:1.5rem;font-weight:700;color:var(--green);line-height:1;">+212%</span>
+                      </div>
+                    </div>
+                    <div style="width:100%;height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
+                      <div data-hbar style="width:55.5%;height:100%;background:linear-gradient(90deg, #34d399, #059669);border-radius:999px;opacity:0.9;transform-origin:left;transform:scaleX(0);animation-delay:0.3s;"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Folk Vintage -->
+                  <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;align-items:flex-end;">
+                      <span style="font-size:1.25rem;font-weight:600;color:var(--navy);">Folk Vintage</span>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        <span style="font-size:1.5rem;font-weight:700;color:var(--green);line-height:1;">+150%</span>
+                      </div>
+                    </div>
+                    <div style="width:100%;height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
+                      <div data-hbar style="width:44.4%;height:100%;background:linear-gradient(90deg, #34d399, #059669);border-radius:999px;opacity:0.8;transform-origin:left;transform:scaleX(0);animation-delay:0.4s;"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Oxfam -->
+                  <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;align-items:flex-end;">
+                      <span style="font-size:1.25rem;font-weight:600;color:var(--navy);">Oxfam</span>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                        <span style="font-size:1.5rem;font-weight:700;color:var(--green);line-height:1;">+125%</span>
+                      </div>
+                    </div>
+                    <div style="width:100%;height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
+                      <div data-hbar style="width:40%;height:100%;background:linear-gradient(90deg, #34d399, #059669);border-radius:999px;opacity:0.7;transform-origin:left;transform:scaleX(0);animation-delay:0.5s;"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Vision Ireland -->
+                  <div style="padding-top:1.5rem;border-top:2px dashed #cbd5e1;margin-top:0.5rem;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;align-items:flex-end;">
+                      <span style="font-size:1.25rem;font-weight:700;color:var(--navy);">Vision Ireland (Current)</span>
+                      <span style="font-size:1.25rem;font-weight:600;color:#64748b;line-height:1;">Baseline</span>
+                    </div>
+                    <div style="width:100%;height:16px;background:#f1f5f9;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
+                      <div data-hbar style="width:17.7%;height:100%;background:var(--navy);border-radius:999px;transform-origin:left;transform:scaleX(0);animation-delay:0.6s;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div data-anim="fade-left" data-delay="4">
+              <div class="green-card" style="border-radius:1.5rem;padding:2.5rem;">
+                <div class="icon-box-lg" style="background:rgba(0,194,125,0.12);color:var(--green);margin-bottom:1.5rem;">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <h3 style="font-size:1.5rem;font-weight:500;color:var(--navy);margin-bottom:1.5rem;letter-spacing:-0.02em;">Growth Potential</h3>
+                <p style="font-size:1rem;color:#475569;line-height:1.7;font-weight:400;">
+                  Your listing output grows as your operation matures on Thriftify. Through optimised listing stations, workflow refinements, and category grouping strategies, our clients consistently progress toward <strong style="color:var(--navy);font-weight:600;">160+ listings per day per operator</strong> — with our top performer currently at 225/day.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: SELL-THROUGH RATE -->
+    <div class="slide" id="slide-5">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">Revenue Impact</span>
+            <h2 class="slide-title">More Listings Sold, More Revenue Earned</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:2rem;">
+          
+          <div style="max-width:1000px;margin:0 auto;width:100%;">
+            
+            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:2rem;margin-bottom:3rem;">
+              
+              <!-- Trovie -->
+              <div class="card" data-anim="fade-up" data-delay="2" style="border-radius:1.5rem;padding:2.5rem 2rem;display:flex;flex-direction:column;align-items:center;background:white;position:relative;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.05);border:1px solid #f1f5f9;">
+                <h3 style="font-size:1.5rem;font-weight:600;color:var(--navy);margin-bottom:2rem;">Trovie</h3>
+                
+                <div style="position:relative;width:180px;height:180px;margin-bottom:2.5rem;">
+                  <svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg);">
+                    <defs>
+                      <linearGradient id="gradTrovie" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#34d399" />
+                        <stop offset="100%" stop-color="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <!-- Background track -->
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="#f1f5f9" stroke-width="16"></circle>
+                    <!-- After circle (green) -->
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="url(#gradTrovie)" stroke-width="16" stroke-dasharray="477.5" stroke-dashoffset="219.1" stroke-linecap="round" style="transition:all 1.5s ease-out;"></circle>
+                    <!-- Before circle (gray) -->
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="#cbd5e1" stroke-width="16" stroke-dasharray="477.5" stroke-dashoffset="358.1" stroke-linecap="round"></circle>
+                  </svg>
+                  <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <span style="font-size:3rem;font-weight:800;color:var(--navy);line-height:1;margin-bottom:0.25rem;">54<span style="font-size:1.5rem;">%</span></span>
+                    <span style="font-size:0.875rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">STR</span>
+                  </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;width:100%;padding-top:1.5rem;border-top:1px solid #f1f5f9;">
+                  <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                    <span style="font-size:0.75rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Before</span>
+                    <span style="font-size:1.25rem;font-weight:600;color:#64748b;">25%</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <span style="font-size:0.75rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Growth</span>
+                    <span style="font-size:1.25rem;font-weight:800;color:var(--green);">+116%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Oxfam -->
+              <div class="card" data-anim="fade-up" data-delay="3" style="border-radius:1.5rem;padding:2.5rem 2rem;display:flex;flex-direction:column;align-items:center;background:white;position:relative;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.05);border:1px solid #f1f5f9;">
+                <h3 style="font-size:1.5rem;font-weight:600;color:var(--navy);margin-bottom:2rem;">Oxfam</h3>
+                
+                <div style="position:relative;width:180px;height:180px;margin-bottom:2.5rem;">
+                  <svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg);">
+                    <defs>
+                      <linearGradient id="gradCompany" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#34d399" />
+                        <stop offset="100%" stop-color="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="#f1f5f9" stroke-width="16"></circle>
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="url(#gradCompany)" stroke-width="16" stroke-dasharray="477.5" stroke-dashoffset="335.1" stroke-linecap="round" style="transition:all 1.5s ease-out;"></circle>
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="#cbd5e1" stroke-width="16" stroke-dasharray="477.5" stroke-dashoffset="405.8" stroke-linecap="round"></circle>
+                  </svg>
+                  <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <span style="font-size:3rem;font-weight:800;color:var(--navy);line-height:1;margin-bottom:0.25rem;">30<span style="font-size:1.5rem;">%</span></span>
+                    <span style="font-size:0.875rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">STR</span>
+                  </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;width:100%;padding-top:1.5rem;border-top:1px solid #f1f5f9;">
+                  <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                    <span style="font-size:0.75rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Before</span>
+                    <span style="font-size:1.25rem;font-weight:600;color:#64748b;">15%</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <span style="font-size:0.75rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Growth</span>
+                    <span style="font-size:1.25rem;font-weight:800;color:var(--green);">+99%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hub Vintage -->
+              <div class="card" data-anim="fade-up" data-delay="4" style="border-radius:1.5rem;padding:2.5rem 2rem;display:flex;flex-direction:column;align-items:center;background:white;position:relative;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.05);border:1px solid #f1f5f9;">
+                <h3 style="font-size:1.5rem;font-weight:600;color:var(--navy);margin-bottom:2rem;">Hub Vintage</h3>
+                
+                <div style="position:relative;width:180px;height:180px;margin-bottom:2.5rem;">
+                  <svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg);">
+                    <defs>
+                      <linearGradient id="gradHub" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#34d399" />
+                        <stop offset="100%" stop-color="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="#f1f5f9" stroke-width="16"></circle>
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="url(#gradHub)" stroke-width="16" stroke-dasharray="477.5" stroke-dashoffset="366.8" stroke-linecap="round" style="transition:all 1.5s ease-out;"></circle>
+                    <circle cx="90" cy="90" r="76" fill="none" stroke="#cbd5e1" stroke-width="16" stroke-dasharray="477.5" stroke-dashoffset="396.3" stroke-linecap="round"></circle>
+                  </svg>
+                  <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <span style="font-size:3rem;font-weight:800;color:var(--navy);line-height:1;margin-bottom:0.25rem;">23<span style="font-size:1.5rem;">%</span></span>
+                    <span style="font-size:0.875rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">STR</span>
+                  </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;width:100%;padding-top:1.5rem;border-top:1px solid #f1f5f9;">
+                  <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                    <span style="font-size:0.75rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Before</span>
+                    <span style="font-size:1.25rem;font-weight:600;color:#64748b;">17%</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <span style="font-size:0.75rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Growth</span>
+                    <span style="font-size:1.25rem;font-weight:800;color:var(--green);">+36%</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="green-card" data-anim="fade-up" data-delay="4" style="border-radius:1.5rem;padding:2.5rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div class="icon-box-lg" style="background:rgba(0,194,125,0.12);color:var(--green);margin-bottom:1.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
+              </div>
+              <h3 style="font-size:1.75rem;font-weight:500;color:var(--navy);margin:0;letter-spacing:-0.02em;line-height:1.3;">
+                Average STR <span style="color:var(--green);">nearly doubles</span> after switching to Thriftify
+              </h3>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: LISTING QUALITY -->
+    <div class="slide" id="slide-6">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">Quality Improvement</span>
+            <h2 class="slide-title">The Difference Thriftify Makes</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;gap:1.5rem;">
+
+          <!-- Visual comparison rows -->
+          <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;flex:1;">
+
+            <!-- Before column -->
+            <div style="display:flex;flex-direction:column;gap:0;position:relative;">
+              <div data-anim="fade-down" data-delay="2" style="padding:0.75rem 1.5rem;background:#fef2f2;border-radius:1rem 1rem 0 0;border:1px solid #fecaca;border-bottom:none;display:flex;align-items:center;gap:0.625rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+                <span style="font-size:0.8rem;font-weight:600;color:#ef4444;text-transform:uppercase;letter-spacing:0.08em;">Before</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:0;border-left:1px solid #fecaca;border-right:1px solid #fecaca;border-bottom:1px solid #fecaca;border-radius:0 0 1rem 1rem;overflow:hidden;">
+                <div data-anim="fade-left" data-delay="3" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(254,242,242,0.5);border-bottom:1px solid #fef2f2;">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:#475569;line-height:1.3;margin-bottom:0.125rem;">Inconsistent images</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#94a3b8;">Varied quality and framing</p>
+                  </div>
+                </div>
+                <div data-anim="fade-left" data-delay="4" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(254,242,242,0.3);border-bottom:1px solid #fef2f2;">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:#475569;line-height:1.3;margin-bottom:0.125rem;">Incomplete descriptions</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#94a3b8;">Varied structure and detail</p>
+                  </div>
+                </div>
+                <div data-anim="fade-left" data-delay="5" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(254,242,242,0.3);border-bottom:1px solid #fef2f2;">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"><path d="M4 7V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2H4"/><path d="M8 12.5 H16"/><path d="M8 16.5 H12"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:#475569;line-height:1.3;margin-bottom:0.125rem;">Missing item specifics</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#94a3b8;">Size, colour, condition gaps</p>
+                  </div>
+                </div>
+                <div data-anim="fade-left" data-delay="6" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(254,242,242,0.2);">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:#475569;line-height:1.3;margin-bottom:0.125rem;">Low search visibility</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#94a3b8;">Fewer impressions and views</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Center arrow -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:0 1rem;" data-anim="scale" data-delay="4">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
+                <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--green));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,194,125,0.2);">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- After column -->
+            <div style="display:flex;flex-direction:column;gap:0;position:relative;">
+              <div data-anim="fade-down" data-delay="2" style="padding:0.75rem 1.5rem;background:rgba(0,194,125,0.08);border-radius:1rem 1rem 0 0;border:1px solid rgba(0,194,125,0.2);border-bottom:none;display:flex;align-items:center;gap:0.625rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span style="font-size:0.8rem;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.08em;">After</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:0;border-left:1px solid rgba(0,194,125,0.2);border-right:1px solid rgba(0,194,125,0.2);border-bottom:1px solid rgba(0,194,125,0.2);border-radius:0 0 1rem 1rem;overflow:hidden;">
+                <div data-anim="fade-right" data-delay="3" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(0,194,125,0.04);border-bottom:1px solid rgba(0,194,125,0.08);">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:rgba(0,194,125,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:var(--navy);line-height:1.3;margin-bottom:0.125rem;">Consistent, quality images</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#64748b;">Multiple angles, professional framing</p>
+                  </div>
+                </div>
+                <div data-anim="fade-right" data-delay="4" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(0,194,125,0.03);border-bottom:1px solid rgba(0,194,125,0.08);">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:rgba(0,194,125,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:var(--navy);line-height:1.3;margin-bottom:0.125rem;">Structured descriptions</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#64748b;">Clear, standardised format</p>
+                  </div>
+                </div>
+                <div data-anim="fade-right" data-delay="5" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(0,194,125,0.03);border-bottom:1px solid rgba(0,194,125,0.08);">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:rgba(0,194,125,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><path d="M4 7V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2H4"/><path d="M9 12l2 2 4-4"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:var(--navy);line-height:1.3;margin-bottom:0.125rem;">Complete item specifics</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#64748b;">Fully populated attributes</p>
+                  </div>
+                </div>
+                <div data-anim="fade-right" data-delay="6" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:rgba(0,194,125,0.02);">
+                  <div style="width:40px;height:40px;border-radius:0.75rem;background:rgba(0,194,125,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                  </div>
+                  <div>
+                    <p style="font-size:0.9rem;font-weight:500;color:var(--navy);line-height:1.3;margin-bottom:0.125rem;">Higher search visibility</p>
+                    <p style="font-size:0.75rem;font-weight:400;color:#64748b;">Better discoverability and trust</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom quote -->
+          <div data-anim="fade-up" data-delay="7" style="background:linear-gradient(135deg,rgba(30,58,138,0.04),rgba(0,194,125,0.04));border:1px solid rgba(30,58,138,0.08);border-radius:1rem;padding:1.25rem 2rem;text-align:center;max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:center;gap:1rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" style="flex-shrink:0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <p style="font-size:1rem;font-weight:400;color:#475569;letter-spacing:0.01em;">Thriftify standardises listing quality across all products — improving discoverability and buyer trust.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: SERVICES -->
+    <div class="slide" id="slide-7">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">What We Offer</span>
+            <h2 class="slide-title">Our Expertise</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:2rem;">
+          
+          <div style="text-align:center;margin-bottom:3rem;" data-anim="fade-down" data-delay="2">
+            <h3 style="font-size:2.25rem;font-weight:500;color:var(--navy);letter-spacing:-0.02em;">We Set Everything Up For You</h3>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:1000px;margin:0 auto;width:100%;">
+            
+            <div class="card" data-anim="fade-up" data-delay="3" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#eff6ff;color:var(--navy);flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">eBay Store Setup</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Full store configuration, category structure, policies</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="4" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#ecfdf5;color:var(--green);flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Shopify Store Setup</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">End-to-end store build and integration</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="5" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#eef2ff;color:var(--indigo);flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Photography Station Setup</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Professional listing photography setup at your facility</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="6" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#fffbeb;color:#ea580c;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Workflow & Process Design</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">We design your listing operation from the ground up</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="7" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#fdf2f8;color:#db2777;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Second-Hand Business Expertise</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Deep knowledge of resale operations and inventory management</p>
+              </div>
+            </div>
+
+            <div class="card" data-anim="fade-up" data-delay="8" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;">
+              <div class="icon-box" style="background:#f0fdf4;color:#16a34a;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Ongoing Support & Iteration</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">Continuous refinement based on your performance data</p>
+              </div>
+            </div>
+            
+            <div class="card" data-anim="fade-up" data-delay="9" style="border-radius:1rem;display:flex;align-items:flex-start;gap:1.5rem;padding:1.5rem;grid-column:1 / -1;background:linear-gradient(to right, #ffffff, #f8fafc);">
+              <div class="icon-box" style="background:#fefce8;color:#d97706;flex-shrink:0;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <h4 style="font-size:1.125rem;font-weight:500;color:var(--navy);margin-bottom:0.25rem;">Pricing Strategy</h4>
+                <p style="color:#64748b;font-weight:400;line-height:1.5;">We implement strike-through and markdown pricing tactics, backed by ongoing recommendations from your live performance data, sell-through rates and market trends.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: ROI CALCULATOR -->
+    <div class="slide" id="slide-9">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1" style="padding-bottom:1rem;">
+          <div>
+            <span class="slide-subtitle">Based on trial data — adjust assumptions to model your own performance</span>
+            <h2 class="slide-title">Calculate Your ROI with Thriftify</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="padding-top:0.5rem;padding-bottom:0.5rem;display:flex;gap:1.5rem;overflow:hidden;">
+
+          <!-- LEFT: Inputs -->
+          <div data-anim="fade-left" data-delay="2" style="width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:1rem;">
+            <!-- Adjust Assumptions Card -->
+            <div style="background:white;border:1px solid #f3f4f6;border-radius:1.5rem;padding:1.25rem;box-shadow:0 4px 20px rgba(0,0,0,0.04);">
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
+                <div style="width:38px;height:38px;border-radius:0.875rem;background:#f9fafb;border:1px solid #f3f4f6;display:flex;align-items:center;justify-content:center;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </div>
+                <h3 style="font-size:1.125rem;font-weight:600;color:#101828;">Adjust Assumptions</h3>
+              </div>
+
+              <!-- Operators -->
+              <div style="margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                  <span style="font-size:0.875rem;font-weight:500;color:#4a5565;">Number of Operators</span>
+                </div>
+                <div style="display:flex;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.875rem;height:50px;padding:0 7px;">
+                  <button id="opMinus" style="width:36px;height:36px;border-radius:0.625rem;border:1px solid #e5e7eb;background:white;cursor:pointer;font-size:1.125rem;font-weight:600;color:#374151;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,0.1);">−</button>
+                  <div id="opValue" style="flex:1;text-align:center;font-size:1.125rem;font-weight:600;color:#101828;">1</div>
+                  <button id="opPlus" style="width:36px;height:36px;border-radius:0.625rem;border:1px solid #e5e7eb;background:white;cursor:pointer;font-size:1.125rem;font-weight:600;color:#374151;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,0.1);">+</button>
+                </div>
+              </div>
+
+              <!-- Daily Listings -->
+              <div style="margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                  <span style="font-size:0.875rem;font-weight:500;color:#4a5565;">Daily Listings (per operator)</span>
+                </div>
+                <input id="inListings" type="number" value="30" min="1" style="width:100%;height:46px;border-radius:0.875rem;border:1px solid #e5e7eb;background:#f9fafb;padding:0 1rem;font-size:1rem;font-weight:600;color:#101828;font-family:inherit;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='#e5e7eb'">
+              </div>
+
+              <!-- Average Sale Price -->
+              <div style="margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a5565" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                  <span style="font-size:0.875rem;font-weight:500;color:#4a5565;">Average Sale Price</span>
+                </div>
+                <div style="position:relative;">
+                  <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1rem;font-weight:500;color:#99a1af;">€</span>
+                  <input id="inASP" type="number" value="15" min="0.01" step="0.50" style="width:100%;height:46px;border-radius:0.875rem;border:1px solid #e5e7eb;background:#f9fafb;padding:0 1rem 0 2rem;font-size:1rem;font-weight:600;color:#101828;font-family:inherit;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='#e5e7eb'">
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Outputs -->
+          <div data-anim="fade-right" data-delay="3" style="flex:1;display:flex;flex-direction:column;gap:1rem;">
+            <!-- Top row: Summary + Final ROI -->
+            <div style="display:flex;gap:1rem;height:280px;">
+              <!-- Summary Breakdown Card -->
+              <div style="flex:1;background:white;border:1px solid #f3f4f6;border-radius:1.5rem;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);display:flex;flex-direction:column;justify-content:space-between;">
+                <div id="summaryRow0" style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:500;color:#6a7282;">Monthly Listings</span>
+                  <span><span id="sumOldListings" style="font-size:0.875rem;color:#99a1af;text-decoration:line-through;">660</span><span id="sumNewListings" style="font-size:0.875rem;font-weight:700;color:#101828;margin-left:4px;">1,320</span></span>
+                </div>
+                <div style="border-top:1px solid #f9fafb;padding-top:0.6rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:500;color:#6a7282;">Monthly Income</span>
+                  <span><span id="sumOldIncome" style="font-size:0.875rem;color:#99a1af;text-decoration:line-through;">€9,900.00</span><span id="sumNewIncome" style="font-size:0.875rem;font-weight:700;color:#101828;margin-left:4px;">€21,780.00</span></span>
+                </div>
+                <div style="border-top:1px solid #f9fafb;padding-top:0.6rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:700;color:#00c27d;">Net New Income</span>
+                  <span id="sumNetNew" style="font-size:0.875rem;font-weight:700;color:#00c27d;">€11,880.00</span>
+                </div>
+                <div style="border-top:1px solid #f9fafb;padding-top:0.6rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:500;color:#ff6467;">Listing Cost</span>
+                  <span id="sumListCost" style="font-size:0.875rem;font-weight:700;color:#fb2c36;">-€580.80</span>
+                </div>
+                <div style="border-top:1px solid #f9fafb;padding-top:0.6rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:700;color:#364153;">ROI Per Operator</span>
+                  <span id="sumROIOp" style="font-size:0.875rem;font-weight:700;color:#101828;">€11,299.20</span>
+                </div>
+                <div style="border-top:1px solid #f9fafb;padding-top:0.6rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:500;color:#ff6467;">Platform Margin (10%)</span>
+                  <span id="sumMargin" style="font-size:0.875rem;font-weight:700;color:#fb2c36;">-€1,129.92</span>
+                </div>
+                <div style="border-top:1px solid #f9fafb;padding-top:0.6rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.875rem;font-weight:700;color:#1e3a8a;">ROI After Margin</span>
+                  <span id="sumAfterMargin" style="font-size:0.875rem;font-weight:700;color:#1e3a8a;">€10,169.28</span>
+                </div>
+              </div>
+
+              <!-- Final ROI Green Card -->
+              <div style="width:340px;flex-shrink:0;background:#00c27d;border:1px solid #00c27d;border-radius:1.5rem;padding:2rem;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 10px 15px rgba(0,0,0,0.1);">
+                <div style="position:absolute;right:0;top:0;width:192px;height:192px;background:rgba(255,255,255,0.1);border-radius:50%;filter:blur(40px);pointer-events:none;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;">
+                  <span style="font-size:0.875rem;font-weight:700;color:#d0fae5;text-transform:uppercase;letter-spacing:0.1em;">Final ROI</span>
+                  <div style="width:40px;height:40px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00c27d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                  </div>
+                </div>
+                <div style="position:relative;z-index:1;">
+                  <div id="outFinalROI" style="font-size:3rem;font-weight:800;color:white;letter-spacing:-0.03em;line-height:1;">€7,669.28</div>
+                  <div style="font-size:0.875rem;font-weight:500;color:#d0fae5;margin-top:0.75rem;">After €2,500.00 contract cost</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom: ROI Scalability Model Table -->
+            <div style="flex:1;background:white;border:1px solid #f3f4f6;border-radius:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.25rem;display:flex;flex-direction:column;overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                <div>
+                  <h3 style="font-size:1.125rem;font-weight:700;color:#101828;margin-bottom:0.125rem;">ROI Scalability Model</h3>
+                  <p style="font-size:0.875rem;color:#6a7282;font-weight:400;">Projected performance at different operator scales</p>
+                </div>
+                <div style="display:flex;background:#f3f4f6;border-radius:0.625rem;padding:4px;">
+                  <div style="padding:0.375rem 1rem;border-radius:0.5rem;font-size:0.875rem;font-weight:600;font-family:inherit;background:white;color:#101828;box-shadow:0 1px 3px rgba(0,0,0,0.1);">60 Daily</div>
+                </div>
+              </div>
+              <div style="flex:1;overflow:auto;">
+                <table style="width:100%;border-collapse:collapse;">
+                  <thead>
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                      <th style="text-align:left;padding:0.5rem 0.5rem;font-size:0.75rem;font-weight:600;color:#6a7282;text-transform:uppercase;letter-spacing:0.05em;">Operators</th>
+                      <th style="text-align:left;padding:0.5rem 0.5rem;font-size:0.75rem;font-weight:600;color:#6a7282;text-transform:uppercase;letter-spacing:0.05em;">Listings/Mo</th>
+                      <th style="text-align:left;padding:0.5rem 0.5rem;font-size:0.75rem;font-weight:600;color:#6a7282;text-transform:uppercase;letter-spacing:0.05em;">Cost</th>
+                      <th style="text-align:left;padding:0.5rem 0.5rem;font-size:0.75rem;font-weight:600;color:#6a7282;text-transform:uppercase;letter-spacing:0.05em;">Contract</th>
+                      <th style="text-align:left;padding:0.5rem 0.5rem;font-size:0.75rem;font-weight:600;color:#00c27d;text-transform:uppercase;letter-spacing:0.05em;">ROI</th>
+                      <th style="text-align:right;padding:0.5rem 0.5rem;font-size:0.75rem;font-weight:600;color:#1e3a8a;text-transform:uppercase;letter-spacing:0.05em;">Multiple</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scaleTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11: PRICING -->
+    <div class="slide" id="slide-10">
+      <div class="slide-inner">
+        <div class="slide-bg-grid"></div><div class="slide-bg-blob1"></div><div class="slide-bg-blob2"></div>
+        <div class="slide-header" data-anim="fade-down" data-delay="1">
+          <div>
+            <span class="slide-subtitle">Investment</span>
+            <h2 class="slide-title">Find The Right Plan For You</h2>
+          </div>
+          <div class="slide-branding"><img src="assets/thriftify-logo.png" alt="Thriftify" style="height:22px;width:auto;object-fit:contain;"><span>×</span><span style="font-size:1.25rem;font-weight:700;color:var(--navy);line-height:1;">Vintora</span></div>
+        </div>
+        <div class="slide-content" style="display:flex;flex-direction:column;justify-content:center;padding-top:0.5rem;">
+
+          <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;max-width:1100px;margin:0 auto;width:100%;align-items:stretch;">
+
+            <!-- LEFT: Pricing Cards -->
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+
+              <!-- Basic -->
+              <div class="card" data-anim="fade-up" data-delay="2" style="border-radius:1rem;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.25rem;background:white;border:1px solid #e2e8f0;">
+                <div style="flex:1;">
+                  <h3 style="font-size:1.05rem;font-weight:600;color:var(--navy);margin-bottom:0.2rem;">Basic</h3>
+                  <p style="font-size:0.8rem;color:#64748b;line-height:1.5;">Pay as you go and manage everything yourself. Access limited email and chat support.</p>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:0.15rem;flex-shrink:0;">
+                  <span style="font-size:1.75rem;font-weight:800;color:var(--navy);line-height:1;">€0.70</span>
+                  <span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/listing</span>
+                </div>
+              </div>
+
+              <!-- Pro (Recommended) -->
+              <div data-anim="fade-up" data-delay="3" style="border-radius:1rem;padding:1.25rem 1.5rem;background:var(--navy);position:relative;overflow:hidden;box-shadow:0 20px 40px rgba(30,58,138,0.2);flex:1;display:flex;flex-direction:column;">
+                <div style="position:absolute;top:0.75rem;right:0.75rem;background:var(--green);color:white;font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:999px;text-transform:uppercase;letter-spacing:0.05em;">Recommended</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                  <h3 style="font-size:1.05rem;font-weight:600;color:white;">Pro ✦</h3>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:0.15rem;margin-bottom:0.5rem;">
+                  <span style="font-size:1.75rem;font-weight:800;color:white;line-height:1;">€0.50</span>
+                  <span style="font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.6);">/listing</span>
+                </div>
+                <p style="font-size:0.8rem;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:0.75rem;">Access Thriftify's full complement of expertise and advice with bi-weekly calls, bespoke projects and consultancy starting at 5 hours per month.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.75rem;">
+                  <span style="font-size:0.7rem;font-weight:600;background:rgba(0,194,125,0.15);color:#34d399;padding:0.2rem 0.5rem;border-radius:999px;">5 hrs/month</span>
+                  <span style="font-size:0.7rem;font-weight:600;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:0.2rem 0.5rem;border-radius:999px;">Bi-weekly calls</span>
+                  <span style="font-size:0.7rem;font-weight:600;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:0.2rem 0.5rem;border-radius:999px;">Bespoke projects</span>
+                </div>
+                <div style="margin-top:auto;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.1);">
+                  <p style="font-size:0.75rem;color:rgba(255,255,255,0.45);font-style:italic;line-height:1.4;">Minimum commitment of 1,500 listings per month.</p>
+                </div>
+              </div>
+
+              <!-- Enterprise -->
+              <div class="card" data-anim="fade-up" data-delay="4" style="border-radius:1rem;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.25rem;background:white;border:1px solid #e2e8f0;">
+                <div style="flex:1;">
+                  <h3 style="font-size:1.05rem;font-weight:600;color:var(--navy);margin-bottom:0.2rem;">Enterprise</h3>
+                  <p style="font-size:0.8rem;color:#64748b;line-height:1.5;">Our most intensive plan, for businesses ready to scale high volumes. Access custom software development and integrations, with unlimited support and advice. Minimum commitment of 5,000 listings per month.</p>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:0.15rem;flex-shrink:0;">
+                  <span style="font-size:1.75rem;font-weight:800;color:var(--navy);line-height:1;">€0.40</span>
+                  <span style="font-size:0.75rem;font-weight:500;color:#94a3b8;">/listing</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT: Plan Details -->
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+
+              <!-- Bi-Weekly Calls & Consultancy -->
+              <div data-anim="fade-left" data-delay="5" style="border-radius:1rem;padding:1.25rem 1.5rem;background:linear-gradient(135deg, #f8fafc, #f1f5f9);border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:0.5rem;flex:1;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div style="width:30px;height:30px;border-radius:0.5rem;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  </div>
+                  <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);line-height:1.2;">Bi-Weekly Calls & Consultancy</h4>
+                </div>
+                <p style="font-size:0.78rem;color:#64748b;line-height:1.6;">Regular bi-weekly calls to review performance, refine strategy, and ensure your operation is on track. Starting at 5 hours per month of dedicated consultancy time for bespoke projects.</p>
+              </div>
+
+              <!-- Custom Development & Integrations -->
+              <div data-anim="fade-left" data-delay="6" style="border-radius:1rem;padding:1.25rem 1.5rem;background:linear-gradient(135deg, #f8fafc, #f1f5f9);border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:0.5rem;flex:1;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div style="width:30px;height:30px;border-radius:0.5rem;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  </div>
+                  <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);line-height:1.2;">Custom Development & Integrations</h4>
+                </div>
+                <p style="font-size:0.78rem;color:#64748b;line-height:1.6;">Enterprise clients get access to custom software development and integrations tailored to their operation, with unlimited support and advice.</p>
+              </div>
+
+              <!-- Unlimited Support -->
+              <div data-anim="fade-left" data-delay="7" style="border-radius:1rem;padding:1.25rem 1.5rem;background:linear-gradient(135deg, #f8fafc, #f1f5f9);border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:0.5rem;flex:1;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                  <div style="width:30px;height:30px;border-radius:0.5rem;background:var(--indigo);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  </div>
+                  <h4 style="font-size:0.95rem;font-weight:700;color:var(--navy);line-height:1.2;">Scalable Support</h4>
+                </div>
+                <p style="font-size:0.78rem;color:#64748b;line-height:1.6;">From limited email and chat on Basic, to full expertise on Pro, to unlimited support on Enterprise — each plan scales with your business needs.</p>
+              </div>
+
+              <!-- Outcome Banner -->
+              <div data-anim="fade-left" data-delay="8" style="border-radius:0.75rem;padding:1rem 1.25rem;background:linear-gradient(135deg, rgba(0,194,125,0.08), rgba(30,58,138,0.06));border:1px dashed rgba(0,194,125,0.35);">
+                <p style="font-size:0.85rem;font-weight:600;color:var(--green);line-height:1.4;"><span style="color:var(--navy);">Outcome:</span> The right level of support and expertise at every stage of your growth.</p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12: THANK YOU -->
+    <div class="slide" id="slide-11">
+      <div style="height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:white;">
+        <div class="cover-bg-grid"></div>
+        <div class="cover-blob"></div>
+
+        <div style="position:relative;z-index:10;text-align:center;max-width:800px;padding:0 2rem;display:flex;flex-direction:column;align-items:center;">
+          <div data-anim="scale" data-delay="2" style="position:relative;margin-bottom:3rem;">
+            <div class="thankyou-heart-glow"></div>
+            <div class="thankyou-heart">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="var(--navy)" stroke="var(--navy)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            </div>
+          </div>
+
+          <h1 data-anim="blur-up" data-delay="4" style="font-size:5rem;font-weight:600;letter-spacing:-0.03em;color:var(--green);line-height:1;margin-bottom:2rem;">Thank You</h1>
+
+          <div data-anim="fade-up" data-delay="6" style="display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
+            <p style="font-size:1.5rem;color:#475569;font-weight:400;max-width:640px;margin:0 auto;line-height:1.7;">
+              We're excited about what we can build together. From faster listings to higher sell-through rates and a scalable operation — we're ready to make it happen for <strong style="color:var(--green);">Vision Ireland</strong>. Let's get started.
+            </p>
+          </div>
+        </div>
+
+        <div data-anim="fade-up" data-delay="9" style="position:absolute;bottom:3rem;">
+          <img src="assets/thriftify-logo.png" alt="Thriftify" style="height:32px;width:auto;object-fit:contain;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div style="position:fixed;top:0;left:0;width:100%;height:3px;z-index:100;background:rgba(0,0,0,0.05);">
+    <div id="progressBar" style="height:100%;width:10%;background:linear-gradient(to right,var(--navy),var(--green));border-radius:0 2px 2px 0;transition:width 0.5s cubic-bezier(0.16,1,0.3,1);"></div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="slide-counter" id="slideCounter">1 / 12</div>
+  <div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" disabled aria-label="Previous Slide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="nav-btn next-btn" id="nextBtn" aria-label="Next Slide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+
+  <script>
+    (function() {
+      var currentSlide = 0;
+      var totalSlides = 12;
+      var slides = document.querySelectorAll('.slide');
+      var prevBtn = document.getElementById('prevBtn');
+      var nextBtn = document.getElementById('nextBtn');
+      var counter = document.getElementById('slideCounter');
+      var progressBar = document.getElementById('progressBar');
+
+      function resetAnimations(slideEl) {
+        var all = slideEl.querySelectorAll('[data-anim], .css-bar, .css-bar-label, .css-bar-value, [data-hbar]');
+        all.forEach(function(el) {
+          el.style.animation = 'none';
+          void el.offsetHeight;
+          el.style.animation = '';
+        });
+      }
+
+      function goToSlide(index) {
+        if (index < 0 || index >= totalSlides || index === currentSlide) return;
+        slides[currentSlide].classList.remove('active');
+        currentSlide = index;
+        resetAnimations(slides[currentSlide]);
+        slides[currentSlide].classList.add('active');
+        prevBtn.disabled = currentSlide === 0;
+        nextBtn.disabled = currentSlide === totalSlides - 1;
+        counter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+        progressBar.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+      }
+
+      prevBtn.addEventListener('click', function() { goToSlide(currentSlide - 1); });
+      nextBtn.addEventListener('click', function() { goToSlide(currentSlide + 1); });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goToSlide(currentSlide + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goToSlide(currentSlide - 1); }
+      });
+
+      // Build Daily Listings Chart (Slide 4) — skipped if element not found
+      var chartEl = document.getElementById('dailyChart');
+      if (chartEl) {
+        var dailyData = [
+          {d:'Mar 2',v:30},{d:'Mar 3',v:0},{d:'Mar 4',v:55},{d:'Mar 5',v:39},{d:'Mar 6',v:16},
+          {d:'Mar 9',v:55},{d:'Mar 10',v:41},{d:'Mar 11',v:0},{d:'Mar 12',v:80},{d:'Mar 13',v:64},
+          {d:'Mar 16',v:60},{d:'Mar 17',v:61},{d:'Mar 18',v:4},{d:'Mar 19',v:1},{d:'Mar 20',v:56},
+          {d:'Mar 23',v:1},{d:'Mar 24',v:72},{d:'Mar 25',v:66},{d:'Mar 26',v:61},{d:'Mar 27',v:23}
+        ];
+        var maxVal = 80;
+        chartEl.style.position = 'relative';
+        dailyData.forEach(function(item, i) {
+          var col = document.createElement('div');
+          col.className = 'css-bar-col';
+          var valSpan = document.createElement('span');
+          valSpan.className = 'css-bar-value';
+          valSpan.textContent = item.v;
+          var bar = document.createElement('div');
+          bar.className = 'css-bar';
+          var pct = maxVal > 0 ? (item.v / maxVal) * 100 : 0;
+          bar.style.height = Math.max(pct, 1) + '%';
+          bar.style.background = item.v === maxVal ? 'var(--green)' : 'var(--navy)';
+          bar.style.opacity = item.v === 0 ? '0.15' : '1';
+          bar.style.animationDelay = (0.3 + i * 0.05) + 's';
+          bar.style.maxWidth = '28px';
+          var label = document.createElement('span');
+          label.className = 'css-bar-label';
+          label.textContent = item.d.replace('Mar ', 'M');
+          col.appendChild(valSpan);
+          col.appendChild(bar);
+          col.appendChild(label);
+          chartEl.appendChild(col);
+        });
+      }
+
+
+      // Build Benchmarking Chart (Slide 9)
+      var benchEl = document.getElementById('benchChart');
+      if (benchEl) {
+        var benchData = [
+          {name:'Top Performer (Trovie)', value:225, color:'var(--navy)'},
+          {name:'Single Category Avg', value:171, color:'#cbd5e1'},
+          {name:'Multiple Category Avg', value:101, color:'#cbd5e1'},
+          {name:'Vision Ireland (Current)', value:70, color:'var(--green)'}
+        ];
+        var benchMax = 225;
+        benchData.forEach(function(item, i) {
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:1rem;';
+          var name = document.createElement('span');
+          name.style.cssText = 'width:130px;text-align:right;font-size:0.875rem;font-weight:700;color:#1e293b;flex-shrink:0;';
+          name.textContent = item.name;
+          var track = document.createElement('div');
+          track.style.cssText = 'flex:1;height:40px;background:#f8fafc;border-radius:0 8px 8px 0;overflow:visible;position:relative;';
+          var bar = document.createElement('div');
+          var pct = (item.value / benchMax) * 100;
+          bar.setAttribute('data-hbar', '');
+          bar.style.cssText = 'height:100%;border-radius:0 8px 8px 0;transform-origin:left;width:' + pct + '%;background:' + item.color + ';transform:scaleX(0);animation:growBarH 1s cubic-bezier(0.16,1,0.3,1) forwards;animation-delay:' + (0.5 + i * 0.15) + 's;';
+          var valLabel = document.createElement('span');
+          valLabel.style.cssText = 'position:absolute;right:-3.5rem;top:50%;transform:translateY(-50%);font-size:0.8rem;font-weight:700;color:#64748b;';
+          valLabel.textContent = item.value + '/day';
+          track.appendChild(bar);
+          track.appendChild(valLabel);
+          row.appendChild(name);
+          row.appendChild(track);
+          benchEl.appendChild(row);
+        });
+      }
+
+      // Build Before/After Lists (Slide 8)
+      var beforeItems = [
+        "Inconsistent image quality and framing",
+        "Descriptions varied in structure and completeness",
+        "Missing or incomplete size and item specifics",
+        "Reduced product visibility in search results"
+      ];
+      var afterItems = [
+        "High-quality, consistent images with multiple angles",
+        "Clear, structured and standardised descriptions",
+        "Fully populated item specifics",
+        "Improved search visibility and buyer confidence"
+      ];
+      var beforeEl = document.getElementById('beforeList');
+      var afterEl = document.getElementById('afterList');
+      if (beforeEl && afterEl) {
+        var delayMap = ['3','4','5','6','7','8'];
+        beforeItems.forEach(function(text, i) {
+          var div = document.createElement('div');
+          div.className = 'compare-item';
+          div.setAttribute('data-anim', 'fade-up');
+          div.setAttribute('data-delay', delayMap[i] || '8');
+          div.innerHTML = '<svg class="compare-icon" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg><p style="color:#64748b;font-weight:400;line-height:1.6;">' + text + '</p>';
+          beforeEl.appendChild(div);
+        });
+        var delayMap2 = ['3','4','5','6','7','8'];
+        afterItems.forEach(function(text, i) {
+          var div = document.createElement('div');
+          div.className = 'compare-item';
+          div.setAttribute('data-anim', 'fade-up');
+          div.setAttribute('data-delay', delayMap2[i] || '8');
+          div.innerHTML = '<svg class="compare-icon" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg><p style="color:var(--navy);font-weight:500;line-height:1.6;">' + text + '</p>';
+          afterEl.appendChild(div);
+        });
+      }
+      // ROI Calculator
+      var operators = 1;
+      var opVal = document.getElementById('opValue');
+      var opMinus = document.getElementById('opMinus');
+      var opPlus = document.getElementById('opPlus');
+      var inListings = document.getElementById('inListings');
+      var inASP = document.getElementById('inASP');
+      var scaleTableBody = document.getElementById('scaleTableBody');
+      var operatorTiers = [1, 3, 5, 10, 15, 25];
+
+      function fmt(n) {
+        return '€' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+      function fmtInt(n) {
+        return n.toLocaleString('en-GB');
+      }
+
+      function calcForOps(daily, asp, ops) {
+        var newDaily = daily * 2;
+        var newASP = asp * 1.10;
+        var curMonthly = daily * 22 * ops;
+        var newMonthly = newDaily * 22 * ops;
+        var curIncome = curMonthly * asp;
+        var newIncome = newMonthly * newASP;
+        var netNew = newIncome - curIncome;
+        var listCost = newMonthly * 0.44;
+        var roiPerOp = netNew - listCost;
+        var margin = roiPerOp * 0.10;
+        var roiAfterMargin = roiPerOp - margin;
+        var finalROI = roiAfterMargin - 2500;
+        return {
+          curMonthly: curMonthly, newMonthly: newMonthly,
+          curIncome: curIncome, newIncome: newIncome, netNew: netNew,
+          listCost: listCost, roiPerOp: roiPerOp, margin: margin,
+          roiAfterMargin: roiAfterMargin, finalROI: finalROI
+        };
+      }
+
+      function updateAll() {
+        var daily = parseFloat(inListings.value) || 30;
+        var asp = parseFloat(inASP.value) || 15;
+        var ops = operators;
+        var d = calcForOps(daily, asp, ops);
+
+        document.getElementById('sumOldListings').textContent = fmtInt(d.curMonthly);
+        document.getElementById('sumNewListings').textContent = fmtInt(d.newMonthly);
+        document.getElementById('sumOldIncome').textContent = fmt(d.curIncome);
+        document.getElementById('sumNewIncome').textContent = fmt(d.newIncome);
+        document.getElementById('sumNetNew').textContent = fmt(d.netNew);
+        document.getElementById('sumListCost').textContent = '-' + fmt(d.listCost);
+        document.getElementById('sumROIOp').textContent = fmt(d.roiPerOp);
+        document.getElementById('sumMargin').textContent = '-' + fmt(d.margin);
+        document.getElementById('sumAfterMargin').textContent = fmt(d.roiAfterMargin);
+        document.getElementById('outFinalROI').textContent = fmt(d.finalROI);
+
+        buildScaleTable();
+      }
+
+      function buildScaleTable() {
+        var asp = parseFloat(inASP.value) || 15;
+        var daily = 30;
+        var html = '';
+        operatorTiers.forEach(function(ops) {
+          var d = calcForOps(daily, asp, ops);
+          var multiple = (d.finalROI / 2500).toFixed(1);
+          html += '<tr style="border-bottom:1px solid #f9fafb;">';
+          html += '<td style="padding:0.6rem 0.5rem;font-size:0.875rem;font-weight:600;color:#101828;">' + ops + '</td>';
+          html += '<td style="padding:0.6rem 0.5rem;font-size:0.875rem;font-weight:400;color:#4a5565;">' + fmtInt(d.newMonthly) + '</td>';
+          html += '<td style="padding:0.6rem 0.5rem;font-size:0.875rem;font-weight:400;color:#4a5565;">' + fmt(d.listCost) + '</td>';
+          html += '<td style="padding:0.6rem 0.5rem;font-size:0.875rem;font-weight:400;color:#4a5565;">€2,500.00</td>';
+          html += '<td style="padding:0.6rem 0.5rem;font-size:0.875rem;font-weight:700;color:#00c27d;">' + fmt(d.finalROI) + '</td>';
+          html += '<td style="padding:0.6rem 0.5rem;font-size:0.875rem;font-weight:700;color:#1e3a8a;text-align:right;">' + multiple + 'x</td>';
+          html += '</tr>';
+        });
+        scaleTableBody.innerHTML = html;
+      }
+
+      opMinus.addEventListener('click', function() {
+        if (operators > 1) { operators--; opVal.textContent = operators; updateAll(); }
+      });
+      opPlus.addEventListener('click', function() {
+        operators++; opVal.textContent = operators; updateAll();
+      });
+      inListings.addEventListener('input', updateAll);
+      inASP.addEventListener('input', updateAll);
+
+      updateAll();
+    })();
+  </script>
+</body>
+</html>
